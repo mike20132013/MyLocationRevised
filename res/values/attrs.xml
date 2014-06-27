@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="CircleButton2">
+        <attr name="cb_color" format="color" />
+        <attr name="cb_pressed_ring_width" format="dimension" />
+    </declare-styleable>
+    <declare-styleable name="MyTextView">
+        <attr name="fontName" format="string" />
+    </declare-styleable>
+
+</resources>
