@@ -42,6 +42,8 @@ public class HistoryFragment extends Fragment {
 			+ "types=gas_station&"
 			+ "key=AIzaSyAaDaMUimX4NRgapY-keH18ZYnAmHRNnn4&sensor=true";
 
+	private String testCommit;
+	
 	private Spinner mSpinner;
 
 	private NestedListView mListView2;
