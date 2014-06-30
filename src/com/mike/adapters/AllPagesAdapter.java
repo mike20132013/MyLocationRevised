@@ -7,7 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.mike.appfragments.HistoryFragment;
+import com.mike.appfragments.HistoryRevisedFragment;
 import com.mike.appfragments.HomeFragment;
 
 /**
@@ -34,7 +34,7 @@ public class AllPagesAdapter extends FragmentStatePagerAdapter{
 		
 		case 1:
 
-			return new HistoryFragment();
+			return new HistoryRevisedFragment();
 			
 		}
 		return null;

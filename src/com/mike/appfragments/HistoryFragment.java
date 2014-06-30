@@ -21,10 +21,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
-import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import com.mike.adapters.ViewPagerAdapter;
+import com.mike.adapters.ViewPagerSyncAdapter;
+import com.mike.adapters.ViewPagerSyncRevisedAdapter;
 import com.mike.appmodel.Model;
 import com.mike.customlistview.NestedListView;
 import com.mike.mylocationrevised.R;
@@ -43,13 +44,15 @@ public class HistoryFragment extends Fragment {
 			+ "key=AIzaSyAaDaMUimX4NRgapY-keH18ZYnAmHRNnn4&sensor=true";
 
 	private String testCommit;
-	
+
 	private Spinner mSpinner;
 
 	private NestedListView mListView2;
 
 	private ViewPager mViewPager;
 
+	private ViewPagerSyncAdapter mViewPagerSyncAdapter;
+	
 	private AppUtils mAppUtils;
 
 	private Model mAppModel;
@@ -74,9 +77,54 @@ public class HistoryFragment extends Fragment {
 
 	private ArrayList<Model> mPlaceIconArrayList = new ArrayList<Model>();
 
-	private BackTask mBackTask;
+	// Previous Code
+	ArrayList<LinkedHashMap<String, String>> mHashArray = new ArrayList<LinkedHashMap<String, String>>();
 
-	private ProgressBar mProgressBar;
+	ArrayList<Map<String, String>> mSyncHashArray = new ArrayList<Map<String, String>>();
+
+	ArrayList<Map<String, String>> mModelSyncTypeArrayList = new ArrayList<Map<String, String>>();
+
+	LinkedHashMap<String, String> mHashMap = new LinkedHashMap<String, String>();
+
+	Map<String, String> mSyncHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	Map<String, String> mModelSyncHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	// New Style
+
+	private Map<String, String> mModelPlaceNameSyncTypeHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	private Map<String, String> mModelPlaceTypeSyncTypeHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	private Map<String, String> mModelPlaceAddressSyncTypeHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	private Map<String, String> mModelPlaceLatitudeSyncTypeHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+	
+	private Map<String, String> mModelPlaceLongitudeSyncTypeHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	private Map<String, String> mModelPlaceImageIconSyncTypeHashMap = Collections
+			.synchronizedMap(new LinkedHashMap<String, String>());
+
+	private ArrayList<Map<String, String>> mModelPlaceNameSyncArrayList = new ArrayList<Map<String, String>>();
+	
+	private ArrayList<Map<String, String>> mModelPlaceTypeSyncArrayList = new ArrayList<Map<String, String>>();
+	
+	private ArrayList<Map<String, String>> mModelPlaceAddressSyncArrayList = new ArrayList<Map<String, String>>();
+	
+	private ArrayList<Map<String, String>> mModelPlaceLatitudeSyncArrayList = new ArrayList<Map<String, String>>();
+	
+	private ArrayList<Map<String, String>> mModelPlaceLongitudeSyncArrayList = new ArrayList<Map<String, String>>();
+
+	private ArrayList<Map<String, String>> mModelPlaceImageSyncArrayList = new ArrayList<Map<String, String>>();
+
+	private BackTask mBackTask;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -94,9 +142,6 @@ public class HistoryFragment extends Fragment {
 
 		mAppModel = new Model();
 
-		mProgressBar = (ProgressBar) getActivity().findViewById(
-				R.id.viewPagerProgress);
-
 		mListView2 = (NestedListView) getActivity().findViewById(
 				R.id.historyListView);
 
@@ -109,7 +154,7 @@ public class HistoryFragment extends Fragment {
 
 	}
 
-	public void getGasLocationsUpdate(String gasURL) {
+	private void getGasLocationsUpdate(String gasURL) {
 
 		String placeiconUrl = null;
 		String placeName = null;
@@ -117,32 +162,6 @@ public class HistoryFragment extends Fragment {
 		String placeType = null;
 		String placeLatitude = null;
 		String placeLongitude = null;
-
-		mPlaceNameArrayList = new ArrayList<Model>();
-
-		mPlacetypeArrayList = new ArrayList<Model>();
-
-		mPlaceAddressArrayList = new ArrayList<Model>();
-
-		mPlacelatitudeArrayList = new ArrayList<Model>();
-
-		mPlacelongitudeArrayList = new ArrayList<Model>();
-
-		mPlaceIconArrayList = new ArrayList<Model>();
-
-		ArrayList<LinkedHashMap<String, String>> mHashArray = new ArrayList<LinkedHashMap<String, String>>();
-
-		ArrayList<Map<String, String>> mSyncHashArray = new ArrayList<Map<String, String>>();
-
-		ArrayList<Map<String, String>> mModelSyncArrayList = new ArrayList<Map<String, String>>();
-
-		LinkedHashMap<String, String> mHashMap = new LinkedHashMap<String, String>();
-
-		Map<String, String> mSyncHashMap = Collections
-				.synchronizedMap(new LinkedHashMap<String, String>());
-
-		Map<String, String> mModelSyncHashMap = Collections
-				.synchronizedMap(new LinkedHashMap<String, String>());
 
 		mAppUtils = new AppUtils(getActivity().getApplicationContext());
 		try {
@@ -155,37 +174,94 @@ public class HistoryFragment extends Fragment {
 			for (int i = 0; i < mainJsonArray.length(); i++) {
 
 				JSONObject insidemainJsonArray = mainJsonArray.getJSONObject(i);
+				JSONObject geometryJsonObject = mainJsonArray.getJSONObject(i);
 				placeName = insidemainJsonArray.getString("name");
 				placeAddress = insidemainJsonArray.getString("vicinity");
 				placeiconUrl = insidemainJsonArray.getString("icon");
+				placeType = insidemainJsonArray.getString("types");
 
 				if (mAppModel == null) {
 					mAppModel = new Model();
 				}
 
+				if (geometryJsonObject != null) {
+					JSONObject geometryJSONObject = geometryJsonObject
+							.getJSONObject("geometry");
+					JSONObject locationJSONObject = geometryJSONObject
+							.getJSONObject("location");
+
+					placeLatitude = locationJSONObject.getString("lat");
+					placeLongitude = locationJSONObject.getString("lng");
+
+				}
+
 				mAppModel.setPlaceName(placeName);
 				mAppModel.setAddressList(placeAddress);
 				mAppModel.setWeb_imageUrls(placeiconUrl);
-
-				mHashMap = new LinkedHashMap<String, String>();
+				mAppModel.setPlaceType(placeType);
+				mAppModel.setLatitude(placeLatitude);
+				mAppModel.setLongitude(placeLongitude);
 
 				mHashMap.put("PLACE NAME", placeName);
 				mHashMap.put("PLACE ADDRESS", placeAddress);
 				mHashMap.put("PLACE ICON", placeiconUrl);
+				mHashMap.put("PLACE TYPE", placeType);
+				mHashMap.put("PLACE LATITUDE", placeLatitude);
+				mHashMap.put("PLACE LONGITUDE", placeLongitude);
 
 				mSyncHashMap.put("PLACE NAME", placeName);
 				mSyncHashMap.put("PLACE ADDRESS", placeAddress);
 				mSyncHashMap.put("PLACE ICON", placeiconUrl);
+				mSyncHashMap.put("PLACE TYPE", placeType);
+				mSyncHashMap.put("PLACE LATITUDE", placeLatitude);
+				mSyncHashMap.put("PLACE LONGITUDE", placeLongitude);
 
 				mModelSyncHashMap.put("PLACE NAME", mAppModel.getPlaceName());
 				mModelSyncHashMap.put("PLACE ADDRESS",
 						mAppModel.getAddressList());
 				mModelSyncHashMap.put("PLACE ICON",
 						mAppModel.getWeb_imageUrls());
+				mModelSyncHashMap.put("PLACE TYPE", mAppModel.getPlaceType());
+				mModelSyncHashMap
+						.put("PLACE LATITUDE", mAppModel.getLatitude());
+				mModelSyncHashMap.put("PLACE LONGITUDE",
+						mAppModel.getLongitude());
+
+				mModelPlaceNameSyncTypeHashMap.put("PLACE NAME",
+						mAppModel.getPlaceName());
+				mModelPlaceTypeSyncTypeHashMap.put("PLACE TYPE",
+						mAppModel.getPlaceType());
+				mModelPlaceAddressSyncTypeHashMap.put("PLACE ADDRESS",
+						mAppModel.getAddressList());
+				mModelPlaceLatitudeSyncTypeHashMap.put("PLACE LATITUDE",
+						mAppModel.getLatitude());
+				mModelPlaceLongitudeSyncTypeHashMap.put("PLACE LONGITUDE",
+						mAppModel.getLongitude());
+				mModelPlaceImageIconSyncTypeHashMap.put("PLACE ICON",
+						mAppModel.getWeb_imageUrls());
+
+				mModelPlaceNameSyncArrayList
+						.add(mModelPlaceNameSyncTypeHashMap);
+				mModelPlaceTypeSyncArrayList
+						.add(mModelPlaceTypeSyncTypeHashMap);
+				mModelPlaceAddressSyncArrayList
+						.add(mModelPlaceAddressSyncTypeHashMap);
+				mModelPlaceImageSyncArrayList
+						.add(mModelPlaceImageIconSyncTypeHashMap);
+				mModelPlaceLatitudeSyncArrayList
+						.add(mModelPlaceLatitudeSyncTypeHashMap);
+				mModelPlaceLongitudeSyncArrayList
+						.add(mModelPlaceLongitudeSyncTypeHashMap);
 
 				mHashArray.add(mHashMap);
 				mSyncHashArray.add(mSyncHashMap);
-				mModelSyncArrayList.add(mModelSyncHashMap);
+
+				int valueMap = mModelPlaceNameSyncArrayList.size();
+				String valueMap2 = String.valueOf(mModelPlaceNameSyncArrayList
+						.get(0));
+
+				Log.d("VALUE MAP : ", String.valueOf(valueMap) + "-----------"
+						+ "VALUE : " + valueMap2);
 
 				Iterator mIterator = mHashMap.keySet().iterator();
 
@@ -225,7 +301,7 @@ public class HistoryFragment extends Fragment {
 
 	}
 
-	public void getGasLocations(String gasURL) {
+	private void getGasLocations(String gasURL) {
 
 		String iconUrl = null;
 		String placeName = null;
@@ -329,7 +405,6 @@ public class HistoryFragment extends Fragment {
 
 		@Override
 		protected void onPreExecute() {
-			mProgressBar.setVisibility(View.VISIBLE);
 			super.onPreExecute();
 		}
 
@@ -352,16 +427,17 @@ public class HistoryFragment extends Fragment {
 		protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
 
-			// mAdapter2 = new com.mike.adapters.ListAdapter(getActivity(),
-			// infoArrayList, placeArrayList, mPlaceAddressArrayList);
-			// mViewPagerAdapter = new ViewPagerAdapter(getActivity(),
-			// infoArrayList, mPlaceAddressArrayList, placeArrayList,
-			// mPlacelatitudeArrayList, mPlacelatitudeArrayList,
-			// mPlacetypeArrayList);
-			// mViewPager.setAdapter(mViewPagerAdapter);
-			// mListView2.setAdapter(mAdapter2);
-			// mProgressBar.setVisibility(View.INVISIBLE);
-
+			//Using Collections
+//			mViewPagerSyncAdapter = new ViewPagerSyncAdapter(
+//					mModelPlaceNameSyncArrayList, mModelPlaceTypeSyncArrayList,
+//					mModelPlaceAddressSyncArrayList,
+//					mModelPlaceLatitudeSyncArrayList,
+//					mModelPlaceLongitudeSyncArrayList,
+//					mModelPlaceImageSyncArrayList, getActivity()
+//							.getApplicationContext());
+			
+			mViewPagerSyncAdapter = new ViewPagerSyncAdapter(mModelPlaceNameSyncTypeHashMap, mModelPlaceTypeSyncTypeHashMap, mModelPlaceAddressSyncTypeHashMap, mModelPlaceLatitudeSyncTypeHashMap, mModelPlaceLongitudeSyncTypeHashMap, mModelPlaceImageIconSyncTypeHashMap, getActivity().getApplicationContext());
+			mViewPager.setAdapter(mViewPagerSyncAdapter);
 		}
 	}
 

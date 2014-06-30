@@ -21,7 +21,7 @@ import com.mike.adapters.AllPagesAdapter;
 	private ViewPager mViewPager;
 	private AllPagesAdapter mPagesAdapter;
 	private String[] tabs = { "Map Home", "Nearby Places" };
-	
+		
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
